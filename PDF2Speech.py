@@ -1,3 +1,33 @@
+"""
+Title: PDF to Speech Converter with ElevenLabs API
+Samuel Justice (14th June 2023)
+
+Description:
+
+This script provides a simple graphical user interface (GUI) to convert text content from PDF files into speech using the ElevenLabs API. 
+
+The script allows users to choose a voice and language model from the options provided by ElevenLabs. It supports the generation of speech in multiple languages and a range of voices.
+
+The script is organized into several parts:
+
+- Initial setup and configuration: Sets up necessary libraries and reads the API key for ElevenLabs from a configuration file or user input.
+- Functions for interacting with the ElevenLabs API: These functions fetch available voices, generate the audio, and combine audio files.
+- Functions for handling PDF files: These functions load a PDF file, extract the text, and normalize it.
+- The main GUI: Creates the GUI where the user can select a PDF file, choose a voice and a model, and generate the speech.
+
+Note: The script uses ffmpeg for combining audio files, pdfreader for reading PDF files, and pdfminer for extracting text from PDFs. It also uses tkinter for the GUI.
+
+To install the necessary libraries, run the following commands:
+
+```bash
+pip install configparser
+pip install tkinter
+pip install pdfreader
+pip install pdfminer.six
+pip install elevenlabs
+pip install ffmpeg
+"""
+
 import os
 import re
 import subprocess
