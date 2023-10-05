@@ -86,13 +86,39 @@ def execute_install():
 def copy_files(src, dest):
     try:
         username = os.getlogin()
-        if not os.path.exists(dest):
-            subprocess.run(["sudo", "mkdir", "-p", dest], check=True)
-        
-        subprocess.run(["sudo", "cp", "-R", f"{src}/", dest], check=True)
-        subprocess.run(["sudo", "chown", "-R", username, dest], check=True)
-        
-        return f"Copied files from {src} to {dest}\n"
+        absolute_dest = os.path.abspath(os.path.expanduser(dest))
+
+        if not os.path.exists(src):
+            return f"Source folder {src} does not exist. Skipping.\n"
+
+        print(f"Copying from {src} to {absolute_dest}")
+
+        print(f"Source folder permissions: {os.access(src, os.R_OK)}")
+
+        print("Contents of source folder before copy:", os.listdir(src))
+        if os.path.exists(absolute_dest):
+            print("Contents of destination folder before copy:", os.listdir(absolute_dest))
+
+        mkdir_cmd = ["sudo", "mkdir", "-p", absolute_dest]
+        cp_cmd = ["sudo", "cp", "-Rv", f"{src}/.", absolute_dest]
+        chown_cmd = ["sudo", "chown", "-R", username, absolute_dest]
+
+        if dest == os.path.expanduser("~/Documents"):
+            subprocess.run(mkdir_cmd, check=True)
+            result = subprocess.run(cp_cmd, check=True, capture_output=True, text=True)
+        else:
+            if not os.path.exists(dest):
+                subprocess.run(mkdir_cmd, check=True)
+            result = subprocess.run(cp_cmd, check=True, capture_output=True, text=True)
+            subprocess.run(chown_cmd, check=True)
+
+        print("Copy command output:", result.stdout)
+        print("Copy command errors:", result.stderr)
+
+        if os.path.exists(absolute_dest):
+            print("Contents of destination folder after copy:", os.listdir(absolute_dest))
+
+        return f"Copied files from {src} to {absolute_dest}\n"
     except subprocess.CalledProcessError as e:
         return str(e) + "\n"
     
@@ -101,7 +127,7 @@ def copy_files(src, dest):
     message += copy_files(f"{FOLDER_PATH}/VST3", "/Library/Audio/Plug-Ins/VST3")
     message += copy_files(f"{FOLDER_PATH}/AU", "/Library/Audio/Plug-Ins/Components")
     message += copy_files(f"{FOLDER_PATH}/AAX", "/Library/Application Support/Avid/Audio/Plug-Ins")
-    message += copy_files(f"{FOLDER_PATH}/DOCUMENTS", "~/Documents")
+    message += copy_files(f"{FOLDER_PATH}/DOCUMENTS", os.path.expanduser("~/Documents"))
 
     print(f"FOLDER_PATH is set to {FOLDER_PATH}")
 
