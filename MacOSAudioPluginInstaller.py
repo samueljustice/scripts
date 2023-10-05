@@ -70,23 +70,28 @@ def execute_install():
             subprocess.run(["sudo", "installer", "-pkg", pkg_file, "-target", "/"], check=True)
             message += f"Installed {pkg_file}\n"
         except subprocess.CalledProcessError as e:
-            message += str(e) + "\n"
+                    print(e)  # or log it
+                    return str(e) + "\n"
 
     for mpkg_file in glob.glob(f"{installer_folder}/*.mpkg"):
         try:
             subprocess.run(["sudo", "installer", "-pkg", mpkg_file, "-target", "/"], check=True)
             message += f"Installed {mpkg_file}\n"
         except subprocess.CalledProcessError as e:
-            message += str(e) + "\n"
+            print(e)  # or log it
+            return str(e) + "\n"
 
     output.insert(tk.INSERT, message)
 
 def copy_files(src, dest):
     try:
+        username = os.getlogin()
         if not os.path.exists(dest):
             subprocess.run(["sudo", "mkdir", "-p", dest], check=True)
         
-        subprocess.run(["sudo", "cp", "-R", src + '/*', dest], check=True)
+        subprocess.run(["sudo", "cp", "-R", f"{src}/", dest], check=True)
+        subprocess.run(["sudo", "chown", "-R", username, dest], check=True)
+        
         return f"Copied files from {src} to {dest}\n"
     except subprocess.CalledProcessError as e:
         return str(e) + "\n"
@@ -97,6 +102,8 @@ def copy_files(src, dest):
     message += copy_files(f"{FOLDER_PATH}/AU", "/Library/Audio/Plug-Ins/Components")
     message += copy_files(f"{FOLDER_PATH}/AAX", "/Library/Application Support/Avid/Audio/Plug-Ins")
     message += copy_files(f"{FOLDER_PATH}/DOCUMENTS", "~/Documents")
+
+    print(f"FOLDER_PATH is set to {FOLDER_PATH}")
 
     installer_folder = f"{FOLDER_PATH}/installers"
 
