@@ -45,7 +45,7 @@ def select_folder():
 
 def create_folder_structure():
     base_folder = filedialog.askdirectory()
-    target_folder = os.path.join(base_folder, "SamuelJusticePluginInstaller")
+    target_folder = os.path.join(base_folder, "SJsPluginInstaller")
     subfolders = ["AAX", "AU", "DOCUMENTS", "INSTALLERS", "VST", "VST3"]
 
     os.makedirs(target_folder, exist_ok=True)
@@ -82,24 +82,14 @@ def execute_install():
     output.insert(tk.INSERT, message)
 
 def copy_files(src, dest):
-    if not os.path.exists(dest):
-        try:
-            shutil.copytree(src, dest)
-            return f"Copied files from {src} to {dest}\n"
-        except Exception as e:
-            return str(e) + "\n"
-    else:
-        try:
-            for item in os.listdir(src):
-                s = os.path.join(src, item)
-                d = os.path.join(dest, item)
-                if os.path.isdir(s):
-                    shutil.copytree(s, d, False, None)
-                else:
-                    shutil.copy2(s, d)
-            return f"Copied files from {src} to {dest}\n"
-        except Exception as e:
-            return str(e) + "\n"
+    try:
+        if not os.path.exists(dest):
+            subprocess.run(["sudo", "mkdir", "-p", dest], check=True)
+        
+        subprocess.run(["sudo", "cp", "-R", src + '/*', dest], check=True)
+        return f"Copied files from {src} to {dest}\n"
+    except subprocess.CalledProcessError as e:
+        return str(e) + "\n"
     
     message = ""
     message += copy_files(f"{FOLDER_PATH}/VST", "/Library/Audio/Plug-Ins/VST")
