@@ -61,21 +61,25 @@ def execute_install():
     message += copy_files(f"{FOLDER_PATH}/VST3", "/Library/Audio/Plug-Ins/VST3")
     message += copy_files(f"{FOLDER_PATH}/AU", "/Library/Audio/Plug-Ins/Components")
     message += copy_files(f"{FOLDER_PATH}/AAX", "/Library/Application Support/Avid/Audio/Plug-Ins")
-    message += copy_files(f"{FOLDER_PATH}/DOCUMENTS", os.path.expanduser("~/Documents"))
+    message += copy_files(f"{FOLDER_PATH}/DOCUMENTS", "~/Documents")
 
-    # Traverse through "INSTALLATION" folder and its subfolders
-    installer_root_folder = f"{FOLDER_PATH}/INSTALLATION"
+    installer_folder = f"{FOLDER_PATH}/INSTALLERS"
 
-    for dirpath, dirnames, filenames in os.walk(installer_root_folder):
-        for filename in filenames:
-            if filename.endswith('.pkg') or filename.endswith('.mpkg'):
-                full_path = os.path.join(dirpath, filename)
-                try:
-                    subprocess.run(["sudo", "installer", "-pkg", full_path, "-target", "/"], check=True)
-                    message += f"Installed {full_path}\n"
-                except subprocess.CalledProcessError as e:
+    for pkg_file in glob.glob(f"{installer_folder}/*.pkg"):
+        try:
+            subprocess.run(["sudo", "installer", "-pkg", pkg_file, "-target", "/"], check=True)
+            message += f"Installed {pkg_file}\n"
+        except subprocess.CalledProcessError as e:
                     print(e)  # or log it
                     return str(e) + "\n"
+
+    for mpkg_file in glob.glob(f"{installer_folder}/*.mpkg"):
+        try:
+            subprocess.run(["sudo", "installer", "-pkg", mpkg_file, "-target", "/"], check=True)
+            message += f"Installed {mpkg_file}\n"
+        except subprocess.CalledProcessError as e:
+            print(e)  # or log it
+            return str(e) + "\n"
 
     output.insert(tk.INSERT, message)
 
