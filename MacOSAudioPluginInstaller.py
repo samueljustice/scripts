@@ -10,9 +10,9 @@
 # 2. "Select Folder" allows users to specify the source directory containing the plugins.
 # 3. "Execute Install" initiates the copying of plugin files from source to destination and runs package installers.
 # 
-# Author: Your Name
-# Created On: YYYY-MM-DD
-# Last Modified: YYYY-MM-DD
+# Author: Samuel Justice
+# Created On: 2023-10-05
+# Last Modified: 2023-10-05
 #
 # Dependencies:
 # - Tkinter for GUI
@@ -55,6 +55,31 @@ def create_folder_structure():
 def execute_install():
     FOLDER_PATH = folder_path.get()
     output.delete(1.0, tk.END)
+
+    message = ""
+    message += copy_files(f"{FOLDER_PATH}/VST", "/Library/Audio/Plug-Ins/VST")
+    message += copy_files(f"{FOLDER_PATH}/VST3", "/Library/Audio/Plug-Ins/VST3")
+    message += copy_files(f"{FOLDER_PATH}/AU", "/Library/Audio/Plug-Ins/Components")
+    message += copy_files(f"{FOLDER_PATH}/AAX", "/Library/Application Support/Avid/Audio/Plug-Ins")
+    message += copy_files(f"{FOLDER_PATH}/DOCUMENTS", "~/Documents")
+
+    installer_folder = f"{FOLDER_PATH}/INSTALLERS"
+
+    for pkg_file in glob.glob(f"{installer_folder}/*.pkg"):
+        try:
+            subprocess.run(["sudo", "installer", "-pkg", pkg_file, "-target", "/"], check=True)
+            message += f"Installed {pkg_file}\n"
+        except subprocess.CalledProcessError as e:
+            message += str(e) + "\n"
+
+    for mpkg_file in glob.glob(f"{installer_folder}/*.mpkg"):
+        try:
+            subprocess.run(["sudo", "installer", "-pkg", mpkg_file, "-target", "/"], check=True)
+            message += f"Installed {mpkg_file}\n"
+        except subprocess.CalledProcessError as e:
+            message += str(e) + "\n"
+
+    output.insert(tk.INSERT, message)
 
 def copy_files(src, dest):
     if not os.path.exists(dest):
