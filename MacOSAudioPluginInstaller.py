@@ -70,16 +70,16 @@ def execute_install():
             subprocess.run(["sudo", "installer", "-pkg", pkg_file, "-target", "/"], check=True)
             message += f"Installed {pkg_file}\n"
         except subprocess.CalledProcessError as e:
-                    print(e)  # or log it
-                    return str(e) + "\n"
+            print(e)
+            message += f"Failed to install {pkg_file}\n"
 
     for mpkg_file in glob.glob(f"{installer_folder}/*.mpkg"):
         try:
             subprocess.run(["sudo", "installer", "-pkg", mpkg_file, "-target", "/"], check=True)
             message += f"Installed {mpkg_file}\n"
         except subprocess.CalledProcessError as e:
-            print(e)  # or log it
-            return str(e) + "\n"
+            print(e)
+            message += f"Failed to install {mpkg_file}\n"
 
     output.insert(tk.INSERT, message)
 
