@@ -92,16 +92,15 @@ def copy_files(src, dest):
             return f"Source folder {src} does not exist. Skipping.\n"
 
         print(f"Copying from {src} to {absolute_dest}")
-
         print(f"Source folder permissions: {os.access(src, os.R_OK)}")
-
         print("Contents of source folder before copy:", os.listdir(src))
+
         if os.path.exists(absolute_dest):
             print("Contents of destination folder before copy:", os.listdir(absolute_dest))
 
         mkdir_cmd = ["sudo", "mkdir", "-p", absolute_dest]
         cp_cmd = ["sudo", "cp", "-Rv", f"{src}/.", absolute_dest]
-        chown_cmd = ["sudo", "chown", "-R", username, absolute_dest]
+        chown_cmd = ["sudo", "chown", "-R", username, f"{absolute_dest}/*"]
 
         if dest == os.path.expanduser("~/Documents"):
             subprocess.run(mkdir_cmd, check=True)
