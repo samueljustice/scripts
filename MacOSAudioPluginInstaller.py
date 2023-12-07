@@ -12,7 +12,7 @@
 # 
 # Author: Samuel Justice
 # Created On: 2023-10-05
-# Last Modified: 2023-10-05
+# Last Modified: 2023-12-07
 #
 # Dependencies:
 # - Tkinter for GUI
@@ -30,7 +30,6 @@
 # Usage:
 # Execute this script to open the GUI. Use the buttons provided to perform actions.
 
-
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import scrolledtext
@@ -38,6 +37,7 @@ import shutil
 import glob
 import subprocess
 import os
+import stat
 
 def select_folder():
     folder_selected = filedialog.askdirectory()
@@ -45,7 +45,7 @@ def select_folder():
 
 def create_folder_structure():
     base_folder = filedialog.askdirectory()
-    target_folder = os.path.join(base_folder, "SJsPluginInstaller")
+    target_folder = os.path.join(base_folder, "SweejHelperPluginInstaller")
     subfolders = ["AAX", "AU", "DOCUMENTS", "INSTALLERS", "VST", "VST3"]
 
     os.makedirs(target_folder, exist_ok=True)
@@ -85,41 +85,39 @@ def execute_install():
 
 def copy_files(src, dest):
     try:
-        username = os.getlogin()
+        uid = os.getuid()
+        gid = os.getgid()
         absolute_dest = os.path.abspath(os.path.expanduser(dest))
 
         if not os.path.exists(src):
             return f"Source folder {src} does not exist. Skipping.\n"
 
         print(f"Copying from {src} to {absolute_dest}")
-        print(f"Source folder permissions: {os.access(src, os.R_OK)}")
-        print("Contents of source folder before copy:", os.listdir(src))
-
-        if os.path.exists(absolute_dest):
-            print("Contents of destination folder before copy:", os.listdir(absolute_dest))
 
         mkdir_cmd = ["sudo", "mkdir", "-p", absolute_dest]
         cp_cmd = ["sudo", "cp", "-Rv", f"{src}/.", absolute_dest]
-        chown_cmd = ["sudo", "chown", "-R", username, f"{absolute_dest}/*"]
 
-        if dest == os.path.expanduser("~/Documents"):
+        if not os.path.exists(dest):
             subprocess.run(mkdir_cmd, check=True)
-            result = subprocess.run(cp_cmd, check=True, capture_output=True, text=True)
-        else:
-            if not os.path.exists(dest):
-                subprocess.run(mkdir_cmd, check=True)
-            result = subprocess.run(cp_cmd, check=True, capture_output=True, text=True)
+
+        result = subprocess.run(cp_cmd, check=True, capture_output=True, text=True)
+
+        # Loop to run chown and chmod on each file/folder
+        for item in os.listdir(absolute_dest):
+            item_path = os.path.join(absolute_dest, item)
+            chown_cmd = ["sudo", "chown", "-R", f"{uid}:{gid}", item_path]
             subprocess.run(chown_cmd, check=True)
 
-        print("Copy command output:", result.stdout)
-        print("Copy command errors:", result.stderr)
-
-        if os.path.exists(absolute_dest):
-            print("Contents of destination folder after copy:", os.listdir(absolute_dest))
+            if os.path.isdir(item_path):
+                chmod_cmd = ["sudo", "chmod", "755", item_path]
+            else:
+                chmod_cmd = ["sudo", "chmod", "644", item_path]
+            subprocess.run(chmod_cmd, check=True)
 
         return f"Copied files from {src} to {absolute_dest}\n"
     except subprocess.CalledProcessError as e:
         return str(e) + "\n"
+
     
     message = ""
     message += copy_files(f"{FOLDER_PATH}/VST", "/Library/Audio/Plug-Ins/VST")
