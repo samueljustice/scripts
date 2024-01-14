@@ -1,0 +1,14 @@
+# Windows-specific files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# macOS-specific files
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon\r
+._*
+.Spotlight-V100
+.Trashes
+
